@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "go"
+sudo chmod 666 /dev/ttyS0
+source install/setup.bash
+#source /home/pi/.bashrc
+ros2 run laser_vone py_pub_scanner_v1

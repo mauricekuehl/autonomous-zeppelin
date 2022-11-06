@@ -5,4 +5,6 @@ Desktop:
     nav: ros2 launch nav2_bringup navigation_launch.py
     slam: ros2 launch slam_toolbox online_async_launch.py
 Raspberry Pi:
-    
+    ros2 launch mpu6050driver mpu6050driver_launch.py
+    ./run
+    sudo chmod 666 /dev/ttyS0
