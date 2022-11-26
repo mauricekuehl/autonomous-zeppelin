@@ -39,9 +39,17 @@ ekf_filter_node:
                        false, false, true, # angular
                        false, false, false] # linear acc
 
+        pose0: pose
+        pose0_config: [true,  true,  true, # pos
+                       true, true, true, # orientation
+                       false, false, false, # linear
+                       false, false, false, # angular
+                       false, false, false] # linear acc
+
+
         imu0: imu/data
         imu0_config: [false, false, false,
                       true,  true,  true,
                       false, false, false,
                       false, false, false,
-                      true, true, true]
+                      false, false, false]
