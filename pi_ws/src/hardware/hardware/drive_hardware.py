@@ -29,10 +29,10 @@ class Controller(Node):
         self.last_time = time()
 
         self.MASS = 0.7  # kg
-        self.ACCELERATION = 1  # m/s²
-        self.ACCELERATION_ANGULAR = 1  # m/s² when Motors are spinning in oposite Direction TODO: how to calc and does this even make sense + general Angular stuff
-        self.AIR_FRICTION_LINEAR = 0.5
-        self.AIR_FRICTION_ANGULAR = 0.5
+        self.ACCELERATION = 0.2  # m/s²
+        self.ACCELERATION_ANGULAR = 0.2  # m/s² when Motors are spinning in oposite Direction TODO: how to calc and does this even make sense + general Angular stuff
+        self.AIR_FRICTION_LINEAR = 20
+        self.AIR_FRICTION_ANGULAR = 100
         self.RADIUS_MOTORS = 0.5  # m
 
         # self.servo_left = AngularServo(
@@ -57,7 +57,7 @@ class Controller(Node):
         self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 1)
         self.odometry_publisher = self.create_publisher(Odometry, "motor/odom", 1)
 
-        self.create_timer(0.1, self.step)
+        self.create_timer(0.02, self.step)
 
     def cmd_vel_callback(self, twist):
         # TODO set Motor speed with inclusion of the thrust in the opposite direction
