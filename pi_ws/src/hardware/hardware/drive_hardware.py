@@ -17,37 +17,38 @@ MAX_PULSE_WIDTH = 0.002470
 class Controller(Node):
     def __init__(self):
         super().__init__("drive_hardware")
-        self.power_right = 0
-        self.power_left = 0
+        self.power_right = 0  # -1 to 1
+        self.power_left = 0  # -1 to 1
 
         self.x_linear = 0
         self.z_angular = 0
-        self.x_pos = 0
-        self.y_pos = 0
-        self.angle = 0
 
         self.last_time = time()
 
-        # messure without the zeppelin
+        """to messure without the robot"""
         self.MASS = 0.7  # kg
-        self.ACCELERATION = 0.2  # m/s²
-        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
         self.MAX_POWER = 1  # 1 = 100% power
+        self.ACCELERATION = 0.2  # m/s² for max power
+        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
         self.MIN_POWER = (
             0.05  # only provides a warning right know as nav2 should not undergo this
         )
 
-        # edge case, it does not really mean what the name says, TODO: effect in combination with ACCELERATION_ANGULAR
+        """to messure with helium for cmd_vel"""
+        speed = 0.5  # m/s for max power
+        power = self.MAX_POWER  # max power should be used for this, 50% maybe too
+        self.POWER_FOR_ONE_METER_PER_SECOND = power / speed
+
+        # tune angular movement, it does not really mean what the name says
         self.WHEEL_SEPERATION = 1  # m
-        # corelates with WHEEL_SEPERATION
-        self.ACCELERATION_ANGULAR = 0.2  # m/s² TODO: how to calc and does this even make sense + general Angular stuff
 
-        # messure first, first get the Zepplin to move like it should (cmd_vel)
-        self.POWER_FOR_ONE_METER_PER_SECOND = 0.5
+        """to tune the odometry estimation"""
+        self.ACCELERATION_ANGULAR = self.ACCELERATION  # m/s²
 
-        # messure next, TODO maybe with the POWER_FOR_ONE_METER_PER_SECOND calculateble
-        self.AIR_FRICTION_LINEAR = 20
-        self.AIR_FRICTION_ANGULAR = 100
+        # F_n = F_f = m * a = drag * v²
+        # drag = m * a / v²
+        self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
+        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_ANGULAR * 5  # just a guess
 
         # self.servo_left = AngularServo(
         #     SERVO_GPIO_PORT_LEFT,
@@ -82,12 +83,12 @@ class Controller(Node):
         # TODO use polynomial function to map from twist to power
         self.left_power = left_power * self.POWER_FOR_ONE_METER_PER_SECOND
         self.right_power = right_power * self.POWER_FOR_ONE_METER_PER_SECOND
-        self.move()
+        self.execute_power_levels()
 
     def set_max_min_esc(self):
         pass
 
-    def move(self):  # -1 = 1 in terms of thrust
+    def execute_power_levels(self):  # -1 = 1 in terms of thrust
         if self.power_left < 0:
             self.power_left = (
                 self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
@@ -97,7 +98,7 @@ class Controller(Node):
                 self.power_right * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
             )
 
-        # this is just a warning with no huge consequences if is happens
+        # this is just a warning with no huge consequences if it happens
         if self.power_left < self.MIN_POWER or self.power_right < self.MIN_POWER:
             print(
                 "WARNING: Power too low",
@@ -165,12 +166,8 @@ class Controller(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
-        msg.twist.twist.linear.x = self.x_linear
+        msg.twist.twist.linear.x = self.x_linear  # m/s
         msg.twist.twist.angular.z = self.z_angular  # radians/second
-        msg.pose.pose.position.x = self.x_pos
-        msg.pose.pose.position.y = self.y_pos
-        msg.pose.pose.orientation.z = sin(self.angle / 2)
-        msg.pose.pose.orientation.w = cos(self.angle / 2)
         self.odometry_publisher.publish(msg)
 
 
