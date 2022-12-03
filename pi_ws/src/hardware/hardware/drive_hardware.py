@@ -50,6 +50,13 @@ class Controller(Node):
         self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
         self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_ANGULAR * 5  # just a guess
 
+        self.COVARIANCE_LINEAR_X = 0  # TODO
+        self.COVARIANCE_ANGULAR_Z = 0
+
+        self.COVARIANCE_MATRIX = [0 for i in range(36)]
+        self.COVARIANCE_MATRIX[0] = self.COVARIANCE_LINEAR_X
+        self.COVARIANCE_MATRIX[35] = self.COVARIANCE_ANGULAR_Z
+
         # self.servo_left = AngularServo(
         #     SERVO_GPIO_PORT_LEFT,
         #     min_pulse_width=MIN_PULSE_WIDTH,
@@ -167,6 +174,7 @@ class Controller(Node):
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
         msg.twist.twist.linear.x = self.x_linear  # m/s
+        msg.twist.covariance = self.COVARIANCE_MATRIX
         msg.twist.twist.angular.z = self.z_angular  # radians/second
         self.odometry_publisher.publish(msg)
 
