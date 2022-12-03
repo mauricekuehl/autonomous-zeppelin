@@ -199,7 +199,7 @@ ImuFilterMadgwickRos::ImuFilterMadgwickRos(const rclcpp::NodeOptions &options)
     // connection callback.
     const int queue_size = 5;
     rmw_qos_profile_t qos = rmw_qos_profile_sensor_data;
-    imu_subscriber_.reset(new ImuSubscriber(this, "imu/data_raw", qos));
+    imu_subscriber_.reset(new ImuSubscriber(this, "imu/imu_raw", qos));
 
     if (use_mag_)
     {
@@ -543,10 +543,10 @@ void ImuFilterMadgwickRos::checkTopicsTimerCallback()
     if (use_mag_)
         RCLCPP_WARN_STREAM(
             get_logger(),
-            "Still waiting for data on topics /imu/data_raw and /imu/mag...");
+            "Still waiting for data on topics /imu/imu_raw and /imu/mag...");
     else
         RCLCPP_WARN_STREAM(get_logger(),
-                           "Still waiting for data on topic /imu/data_raw...");
+                           "Still waiting for data on topic /imu/imu_raw...");
 }
 
 #include "rclcpp_components/register_node_macro.hpp"

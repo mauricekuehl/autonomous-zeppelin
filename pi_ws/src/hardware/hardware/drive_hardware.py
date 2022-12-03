@@ -1,7 +1,7 @@
 # from gpiozero import AngularServo
 # from gpiozero.pins.pigpio import PiGPIOFactory
 from time import time, sleep
-from math import sin, cos, pi
+from math import sin, cos
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
@@ -17,23 +17,38 @@ MAX_PULSE_WIDTH = 0.002470
 class Controller(Node):
     def __init__(self):
         super().__init__("drive_hardware")
-        self.power_right = 0
-        self.power_left = 0
+        self.power_right = 0  # -1 to 1
+        self.power_left = 0  # -1 to 1
 
         self.x_linear = 0
         self.z_angular = 0
-        self.x_pos = 0
-        self.y_pos = 0
-        self.angle = 0
 
         self.last_time = time()
 
+        """to messure without the robot"""
         self.MASS = 0.7  # kg
-        self.ACCELERATION = 1  # m/s²
-        self.ACCELERATION_ANGULAR = 1  # m/s² when Motors are spinning in oposite Direction TODO: how to calc and does this even make sense + general Angular stuff
-        self.AIR_FRICTION_LINEAR = 0.5
-        self.AIR_FRICTION_ANGULAR = 0.5
-        self.RADIUS_MOTORS = 0.5  # m
+        self.MAX_POWER = 1  # 1 = 100% power
+        self.ACCELERATION = 0.2  # m/s² for max power
+        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
+        self.MIN_POWER = (
+            0.05  # only provides a warning right know as nav2 should not undergo this
+        )
+
+        """to messure with helium for cmd_vel"""
+        speed = 0.5  # m/s for max power
+        power = self.MAX_POWER  # max power should be used for this, 50% maybe too
+        self.POWER_FOR_ONE_METER_PER_SECOND = power / speed
+
+        # tune angular movement, it does not really mean what the name says
+        self.WHEEL_SEPERATION = 1  # m
+
+        """to tune the odometry estimation"""
+        self.ACCELERATION_ANGULAR = self.ACCELERATION  # m/s²
+
+        # F_n = F_f = m * a = drag * v²
+        # drag = m * a / v²
+        self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
+        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_ANGULAR * 5  # just a guess
 
         # self.servo_left = AngularServo(
         #     SERVO_GPIO_PORT_LEFT,
@@ -57,29 +72,68 @@ class Controller(Node):
         self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 1)
         self.odometry_publisher = self.create_publisher(Odometry, "motor/odom", 1)
 
-        self.create_timer(0.1, self.step)
+        self.create_timer(0.02, self.step)
 
     def cmd_vel_callback(self, twist):
-        # TODO set Motor speed with inclusion of the thrust in the opposite direction
-        right_velocity = (
-            twist.linear.x + self.RADIUS_MOTORS * twist.angular.z
+        right_power = (
+            twist.linear.x + self.WHEEL_SEPERATION * twist.angular.z
         )  # this was for wheels...
-        left_velocity = twist.linear.x - self.RADIUS_MOTORS * twist.angular.z
-        self.move(left_velocity, right_velocity)
+        left_power = twist.linear.x - self.WHEEL_SEPERATION * twist.angular.z
+
+        # TODO use polynomial function to map from twist to power
+        self.left_power = left_power * self.POWER_FOR_ONE_METER_PER_SECOND
+        self.right_power = right_power * self.POWER_FOR_ONE_METER_PER_SECOND
+        self.execute_power_levels()
 
     def set_max_min_esc(self):
-        self.move(1, 1)
-        time.sleep(2)
-        self.move(-1, -1)
-        time.sleep(1)
-        self.move(0, 0)
+        pass
 
-    def move(self, left, right):
-        # TODO -1 != 1 in terms of Force
-        # self.servo_left.angle = left
-        # self.servo_right.angle = right
-        self.power_left = left
-        self.power_right = right
+    def execute_power_levels(self):  # -1 = 1 in terms of thrust
+        if self.power_left < 0:
+            self.power_left = (
+                self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
+            )
+        if self.power_right < 0:
+            self.power_right = (
+                self.power_right * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
+            )
+
+        # this is just a warning with no huge consequences if it happens
+        if self.power_left < self.MIN_POWER or self.power_right < self.MIN_POWER:
+            print(
+                "WARNING: Power too low",
+                "l",
+                self.power_left,
+                "r",
+                self.power_right,
+            )
+        # this should not happen, but just in case:
+        if (
+            abs(self.power_left) > self.MAX_POWER
+            or abs(self.power_right) > self.MAX_POWER
+        ):
+            print(
+                "ERROR: Motor power too high",
+                "l",
+                self.power_left,
+                "r",
+                self.power_right,
+            )
+            if (
+                abs(self.power_left) > self.MAX_POWER
+                and abs(self.power_right) > self.MAX_POWER
+            ):
+                self.power_left = self.MAX_POWER
+                self.power_right = self.MAX_POWER
+            elif abs(self.power_left) > self.MAX_POWER:
+                self.power_right = self.power_right / self.power_left
+                self.power_left = self.MAX_POWER
+            elif abs(self.power_right) > self.MAX_POWER:
+                self.power_left = self.power_left / self.power_right
+                self.power_right = self.MAX_POWER
+
+        self.servo_left.angle = self.power_left
+        self.servo_right.angle = self.power_right
 
     def step(self):
         time_now = time()
@@ -108,23 +162,12 @@ class Controller(Node):
             net_force_angular_z / self.MASS * d_time
         )  # TODO this is stupid right?
 
-        self.angle += self.z_angular * d_time
-
-        self.x_pos += (
-            self.x_linear * d_time * cos(self.angle)
-        )  # maybe use this: s = s0 + v0 · t + 1/2 · a · t²
-        self.y_pos += self.x_linear * d_time * sin(self.angle)
-
         msg = Odometry()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
-        msg.twist.twist.linear.x = self.x_linear
+        msg.twist.twist.linear.x = self.x_linear  # m/s
         msg.twist.twist.angular.z = self.z_angular  # radians/second
-        msg.pose.pose.position.x = self.x_pos
-        msg.pose.pose.position.y = self.y_pos
-        msg.pose.pose.orientation.z = sin(self.angle / 2)
-        msg.pose.pose.orientation.w = cos(self.angle / 2)
         self.odometry_publisher.publish(msg)
 
 
