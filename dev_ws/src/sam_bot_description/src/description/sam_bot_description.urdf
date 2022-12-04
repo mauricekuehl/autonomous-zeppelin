@@ -30,34 +30,6 @@
   <xacro:property name="wheel_radius" value="0.10" />
   <xacro:property name="wheel_width" value="0.01" />
   <xacro:property name="carbon_rod_length" value="1" />
-  <xacro:property name="wheel_zoff" value="0.05" />
-  <xacro:property name="wheel_xoff" value="0.12" />
-
-  <xacro:property name="caster_xoff" value="0.14" />
-
-  <!-- Define some commonly used intertial properties  -->
-  <xacro:macro name="box_inertia" params="m w h d">
-    <inertial>
-      <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
-      <mass value="${m}" />
-      <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0" iyy="${(m/12) * (w*w + d*d)}" iyz="0.0" izz="${(m/12) * (w*w + h*h)}" />
-    </inertial>
-  </xacro:macro>
-
-  <xacro:macro name="cylinder_inertia" params="m r h">
-    <inertial>
-      <origin xyz="0 0 0" rpy="${pi/2} 0 0" />
-      <mass value="${m}" />
-      <inertia ixx="${(m/12) * (3*r*r + h*h)}" ixy="0" ixz="0" iyy="${(m/12) * (3*r*r + h*h)}" iyz="0" izz="${(m/2) * (r*r)}" />
-    </inertial>
-  </xacro:macro>
-
-  <xacro:macro name="sphere_inertia" params="m r">
-    <inertial>
-      <mass value="${m}" />
-      <inertia ixx="${(2/5) * m * (r*r)}" ixy="0.0" ixz="0.0" iyy="${(2/5) * m * (r*r)}" iyz="0.0" izz="${(2/5) * m * (r*r)}" />
-    </inertial>
-  </xacro:macro>
 
   <!-- TODO use mesh http://wiki.ros.org/urdf/XML/link -->
   <link name="base_link" />
@@ -202,21 +174,5 @@
     <parent link="base_link" />
     <child link="lidar_link" />
     <origin xyz="0 0 ${-haul_over_ground+0.05/2}" rpy="0 0 0" />
-  </joint>
-
-  <link name="computer_link">
-    <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <geometry>
-        <box size="0.15 0.07 ${haul_over_ground*0.6}" />
-      </geometry>
-      <material name="grey" />
-    </visual>
-  </link>
-
-  <joint name="computer_joint" type="fixed">
-    <parent link="base_link" />
-    <child link="computer_link" />
-    <origin xyz="0 0 ${-haul_over_ground*0.3}" rpy="0 0 0" />
   </joint>
 </robot>
