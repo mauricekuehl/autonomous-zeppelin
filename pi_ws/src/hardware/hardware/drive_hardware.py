@@ -28,14 +28,14 @@ class Controller(Node):
         """to messure without the robot"""
         self.MASS = 0.7  # kg
         self.MAX_POWER = 1  # 1 = 100% power
-        self.ACCELERATION = 0.2  # m/s² for max power
+        self.ACCELERATION = 2  # m/s² for max power
         self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
         self.MIN_POWER = (
             0.05  # only provides a warning right know as nav2 should not undergo this
         )
 
         """to messure with helium for cmd_vel"""
-        speed = 0.5  # m/s for max power
+        speed = 1  # m/s for max power
         power = self.MAX_POWER  # max power should be used for this, 50% maybe too
         self.POWER_FOR_ONE_METER_PER_SECOND = power / speed
 
@@ -48,7 +48,7 @@ class Controller(Node):
         # F_n = F_f = m * a = drag * v²
         # drag = m * a / v²
         self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
-        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_ANGULAR * 5  # just a guess
+        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_LINEAR * 5  # just a guess
 
         self.COVARIANCE_LINEAR_X = 0  # TODO
         self.COVARIANCE_ANGULAR_Z = 0
@@ -82,31 +82,24 @@ class Controller(Node):
         self.create_timer(0.02, self.step)
 
     def cmd_vel_callback(self, twist):
-        right_power = (
+        power_right = (
             twist.linear.x + self.WHEEL_SEPERATION * twist.angular.z
         )  # this was for wheels...
-        left_power = twist.linear.x - self.WHEEL_SEPERATION * twist.angular.z
+        power_left = twist.linear.x - self.WHEEL_SEPERATION * twist.angular.z
 
         # TODO use polynomial function to map from twist to power
-        self.left_power = left_power * self.POWER_FOR_ONE_METER_PER_SECOND
-        self.right_power = right_power * self.POWER_FOR_ONE_METER_PER_SECOND
+        self.power_left = power_left * self.POWER_FOR_ONE_METER_PER_SECOND
+        self.power_right = power_right * self.POWER_FOR_ONE_METER_PER_SECOND
         self.execute_power_levels()
 
     def set_max_min_esc(self):
         pass
 
     def execute_power_levels(self):  # -1 = 1 in terms of thrust
-        if self.power_left < 0:
-            self.power_left = (
-                self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
-            )
-        if self.power_right < 0:
-            self.power_right = (
-                self.power_right * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
-            )
-
         # this is just a warning with no huge consequences if it happens
-        if self.power_left < self.MIN_POWER or self.power_right < self.MIN_POWER:
+        if (0 < self.power_left and self.power_left < self.MIN_POWER) or (
+            0 < self.power_right and self.power_right < self.MIN_POWER
+        ):
             print(
                 "WARNING: Power too low",
                 "l",
@@ -115,6 +108,7 @@ class Controller(Node):
                 self.power_right,
             )
         # this should not happen, but just in case:
+
         if (
             abs(self.power_left) > self.MAX_POWER
             or abs(self.power_right) > self.MAX_POWER
@@ -139,8 +133,17 @@ class Controller(Node):
                 self.power_left = self.power_left / self.power_right
                 self.power_right = self.MAX_POWER
 
-        self.servo_left.angle = self.power_left
-        self.servo_right.angle = self.power_right
+        if self.power_left < 0:
+            power_left = self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
+        else:
+            power_left = self.power_left
+        if self.power_right < 0:
+            power_right = self.power_right * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
+        else:
+            power_right = self.power_right
+
+        # self.servo_left.angle = power_left
+        # self.servo_right.angle = power_right
 
     def step(self):
         time_now = time()
@@ -163,7 +166,6 @@ class Controller(Node):
             acceleration_angular_z * self.MASS
             - self.AIR_FRICTION_ANGULAR * self.z_angular * abs(self.z_angular)
         )
-
         self.x_linear += net_force_linear_x / self.MASS * d_time
         self.z_angular += (
             net_force_angular_z / self.MASS * d_time
@@ -174,7 +176,7 @@ class Controller(Node):
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
         msg.twist.twist.linear.x = self.x_linear  # m/s
-        msg.twist.covariance = self.COVARIANCE_MATRIX
+        # msg.twist.covariance = self.COVARIANCE_MATRIX
         msg.twist.twist.angular.z = self.z_angular  # radians/second
         self.odometry_publisher.publish(msg)
 
