@@ -34,9 +34,7 @@
   <!-- TODO use mesh http://wiki.ros.org/urdf/XML/link -->
   <link name="base_link" />
 
-  <link name="base_footprint">
-    <xacro:box_inertia m="0" w="0" d="0" h="0" />
-  </link>
+  <link name="base_footprint" />
 
   <joint name="base_joint" type="fixed">
     <parent link="base_link" />

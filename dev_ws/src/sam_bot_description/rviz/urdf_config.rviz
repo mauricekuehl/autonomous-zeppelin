@@ -4,6 +4,15 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /RobotModel1
+        - /RobotModel1/Links1
+        - /RobotModel1/Links1/base_footprint1
+        - /RobotModel1/Links1/base_link1
+        - /RobotModel1/Links1/camera_depth_frame1
+        - /RobotModel1/Links1/camera_link1
+        - /RobotModel1/Links1/front_caster1
+        - /RobotModel1/Links1/imu_link1
+        - /RobotModel1/Links1/lidar_link1
         - /Imu1/Box properties1
         - /Imu1/Axes properties1
         - /Odometry1/Topic1
@@ -14,7 +23,7 @@ Panels:
         - /Odometry2
         - /Odometry2/Shape1
       Splitter Ratio: 0.5
-    Tree Height: 1307
+    Tree Height: 814
 Visualization Manager:
   Class: ""
   Displays:
@@ -51,7 +60,7 @@ Visualization Manager:
       Links:
         All Links Enabled: true
         Expand Joint Details: false
-        Expand Link Details: false
+        Expand Link Details: true
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
         base_footprint:
@@ -59,7 +68,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         base_link:
-          Alpha: 1
+          Alpha: 2
           Show Axes: false
           Show Trail: false
           Value: true
@@ -122,19 +131,14 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        odom:
-          base_link:
-            base_footprint:
-              {}
-            camera_link:
-              camera_depth_frame:
-                {}
-            front_caster:
-              {}
-            imu_link:
-              {}
-            lidar_link:
-              {}
+        base_link:
+          base_footprint: {}
+          camera_link:
+            camera_depth_frame: {}
+          front_caster: {}
+          imu_link: {}
+          lidar_link: {}
+          odom: {}
       Update Interval: 0
       Value: true
     - Alpha: 0.699999988079071
@@ -319,7 +323,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.6962509155273438
+      Distance: 5.081526756286621
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -334,18 +338,18 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.11539803445339203
+      Pitch: 0.39539802074432373
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.15540312230587006
+      Yaw: 2.6254336833953857
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1536
+  Height: 1043
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd000000010000000000000156000005a6fc0200000001fb000000100044006900730070006c006100790073010000003d000005a6000000c900ffffff0000085a000005a600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
-  Width: 2486
-  X: 74
-  Y: 27
+  QMainWindow State: 000000ff00000000fd000000010000000000000156000003b9fc0200000001fb000000100044006900730070006c006100790073010000003d000003b9000000c900ffffff00000624000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Width: 1920
+  X: 0
+  Y: 0
