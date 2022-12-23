@@ -1,6 +1,7 @@
 #include "mpu6050driver/mpu6050sensor.h"
 
-extern "C" {
+extern "C"
+{
 #include <errno.h>
 #include <fcntl.h>
 #include <i2c/smbus.h>
@@ -18,18 +19,21 @@ MPU6050Sensor::MPU6050Sensor(int bus_number)
   filename_[9] = *std::to_string(bus_number).c_str();
   std::cout << filename_ << std::endl;
   file_ = open(filename_, O_RDWR);
-  if (file_ < 0) {
+  if (file_ < 0)
+  {
     std::cerr << "Failed to open file descriptor! Check your bus number! Errno: "
               << strerror(errno);
     exit(1);
   }
-  if (ioctl(file_, I2C_SLAVE, MPU6050_ADDRESS_DEFAULT) < 0) {
+  if (ioctl(file_, I2C_SLAVE, MPU6050_ADDRESS_DEFAULT) < 0)
+  {
     std::cerr << "Failed to find device address! Check device address!";
     exit(1);
   }
   // Wake up sensor
   int result = i2c_smbus_write_byte_data(file_, PWR_MGMT_1, 0);
-  if (result < 0) reportError(errno);
+  if (result < 0)
+    reportError(errno);
   // Read current ranges from sensor
   readGyroscopeRange();
   readAccelerometerRange();
@@ -56,7 +60,8 @@ void MPU6050Sensor::printOffsets() const
 int MPU6050Sensor::readGyroscopeRange()
 {
   int range = i2c_smbus_read_byte_data(file_, GYRO_CONFIG);
-  if (range < 0) reportError(errno);
+  if (range < 0)
+    reportError(errno);
   range = range >> GYRO_CONFIG_SHIFT;
   gyro_range_ = GYRO_RANGES[range];
   return gyro_range_;
@@ -65,7 +70,8 @@ int MPU6050Sensor::readGyroscopeRange()
 int MPU6050Sensor::readAccelerometerRange()
 {
   int range = i2c_smbus_read_byte_data(file_, ACCEL_CONFIG);
-  if (range < 0) reportError(errno);
+  if (range < 0)
+    reportError(errno);
   range = range >> ACCEL_CONFIG_SHIFT;
   accel_range_ = ACCEL_RANGES[range];
   return accel_range_;
@@ -74,8 +80,9 @@ int MPU6050Sensor::readAccelerometerRange()
 int MPU6050Sensor::readDlpfConfig()
 {
   int range = i2c_smbus_read_byte_data(file_, DLPF_CONFIG);
-  if (range < 0) reportError(errno);
-  range = range & 7;  // Read only first 3 bits
+  if (range < 0)
+    reportError(errno);
+  range = range & 7; // Read only first 3 bits
   dlpf_range_ = DLPF_RANGES[range];
   return dlpf_range_;
 }
@@ -83,21 +90,24 @@ int MPU6050Sensor::readDlpfConfig()
 void MPU6050Sensor::setGyroscopeRange(MPU6050Sensor::GyroRange range)
 {
   int result = i2c_smbus_write_byte_data(file_, GYRO_CONFIG, range << GYRO_CONFIG_SHIFT);
-  if (result < 0) reportError(errno);
+  if (result < 0)
+    reportError(errno);
   gyro_range_ = GYRO_RANGES[static_cast<size_t>(range)];
 }
 
 void MPU6050Sensor::setAccelerometerRange(MPU6050Sensor::AccelRange range)
 {
   int result = i2c_smbus_write_byte_data(file_, ACCEL_CONFIG, range << ACCEL_CONFIG_SHIFT);
-  if (result < 0) reportError(errno);
+  if (result < 0)
+    reportError(errno);
   accel_range_ = ACCEL_RANGES[static_cast<size_t>(range)];
 }
 
 void MPU6050Sensor::setDlpfBandwidth(DlpfBandwidth bandwidth)
 {
   int result = i2c_smbus_write_byte_data(file_, DLPF_CONFIG, bandwidth);
-  if (result < 0) reportError(errno);
+  if (result < 0)
+    reportError(errno);
   dlpf_range_ = DLPF_RANGES[static_cast<size_t>(bandwidth)];
 }
 
@@ -107,7 +117,8 @@ double MPU6050Sensor::getAccelerationX() const
   int16_t accel_x_lsb = i2c_smbus_read_byte_data(file_, ACCEL_XOUT_H + 1);
   int16_t accel_x = accel_x_lsb | accel_x_msb << 8;
   double accel_x_converted = convertRawAccelerometerData(accel_x);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return accel_x_converted - accel_x_offset_;
   }
   return accel_x_converted;
@@ -119,7 +130,8 @@ double MPU6050Sensor::getAccelerationY() const
   int16_t accel_y_lsb = i2c_smbus_read_byte_data(file_, ACCEL_YOUT_H + 1);
   int16_t accel_y = accel_y_lsb | accel_y_msb << 8;
   double accel_y_converted = convertRawAccelerometerData(accel_y);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return accel_y_converted - accel_y_offset_;
   }
   return accel_y_converted;
@@ -131,7 +143,8 @@ double MPU6050Sensor::getAccelerationZ() const
   int16_t accel_z_lsb = i2c_smbus_read_byte_data(file_, ACCEL_ZOUT_H + 1);
   int16_t accel_z = accel_z_lsb | accel_z_msb << 8;
   double accel_z_converted = convertRawAccelerometerData(accel_z);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return accel_z_converted - accel_z_offset_;
   }
   return accel_z_converted;
@@ -143,7 +156,8 @@ double MPU6050Sensor::getAngularVelocityX() const
   int16_t gyro_x_lsb = i2c_smbus_read_byte_data(file_, GYRO_XOUT_H + 1);
   int16_t gyro_x = gyro_x_lsb | gyro_x_msb << 8;
   double gyro_x_converted = convertRawGyroscopeData(gyro_x);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return gyro_x_converted - gyro_x_offset_;
   }
   return gyro_x_converted;
@@ -155,7 +169,8 @@ double MPU6050Sensor::getAngularVelocityY() const
   int16_t gyro_y_lsb = i2c_smbus_read_byte_data(file_, GYRO_YOUT_H + 1);
   int16_t gyro_y = gyro_y_lsb | gyro_y_msb << 8;
   double gyro_y_converted = convertRawGyroscopeData(gyro_y);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return gyro_y_converted - gyro_y_offset_;
   }
   return gyro_y_converted;
@@ -167,7 +182,8 @@ double MPU6050Sensor::getAngularVelocityZ() const
   int16_t gyro_z_lsb = i2c_smbus_read_byte_data(file_, GYRO_ZOUT_H + 1);
   int16_t gyro_z = gyro_z_lsb | gyro_z_msb << 8;
   double gyro_z_converted = convertRawGyroscopeData(gyro_z);
-  if (calibrated_) {
+  if (calibrated_)
+  {
     return gyro_z_converted - gyro_z_offset_;
   }
   return gyro_z_converted;
@@ -205,7 +221,8 @@ void MPU6050Sensor::setAccelerometerOffset(double accel_x_offset, double accel_y
 void MPU6050Sensor::calibrate()
 {
   int count = 0;
-  while (count < CALIBRATION_COUNT) {
+  while (count < CALIBRATION_COUNT)
+  {
     gyro_x_offset_ += getAngularVelocityX();
     gyro_y_offset_ += getAngularVelocityY();
     gyro_z_offset_ += getAngularVelocityZ();

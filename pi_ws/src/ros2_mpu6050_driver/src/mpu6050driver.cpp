@@ -24,7 +24,8 @@ MPU6050Driver::MPU6050Driver()
                                    this->get_parameter("accel_y_offset").as_double(),
                                    this->get_parameter("accel_z_offset").as_double());
   // Check if we want to calibrate the sensor
-  if (this->get_parameter("calibrate").as_bool()) {
+  if (this->get_parameter("calibrate").as_bool())
+  {
     RCLCPP_INFO(this->get_logger(), "Calibrating...");
     mpu6050_->calibrate();
   }
@@ -42,11 +43,11 @@ void MPU6050Driver::handleInput()
   auto message = sensor_msgs::msg::Imu();
   message.header.stamp = this->get_clock()->now();
   message.header.frame_id = "base_link";
-  //message.header.frame_id = "map";
+  // message.header.frame_id = "map";
   message.angular_velocity_covariance[0] = {0};
   message.angular_velocity.x = mpu6050_->getAngularVelocityX();
   message.angular_velocity.y = mpu6050_->getAngularVelocityY();
-  message.angular_velocity.z = mpu6050_->getAngularVelocityZ(); 
+  message.angular_velocity.z = mpu6050_->getAngularVelocityZ();
   message.linear_acceleration_covariance = {0};
   message.linear_acceleration.x = mpu6050_->getAccelerationX();
   message.linear_acceleration.y = mpu6050_->getAccelerationY();
@@ -60,15 +61,15 @@ void MPU6050Driver::handleInput()
   message.angular_velocity.x = 0;
   message.angular_velocity.y = 0;
   message.angular_velocity.z = 0;
-  
+
   // Invalidate quaternion
   message.orientation_covariance[0] = -1;
   message.orientation.x = 0;
   message.orientation.y = 0;
   message.orientation.z = 0;
-  message.orientation.w = 0; 
+  message.orientation.w = 0;
   */
-  publisher_->publish(message); 
+  publisher_->publish(message);
 }
 
 void MPU6050Driver::declareParameters()
@@ -86,7 +87,7 @@ void MPU6050Driver::declareParameters()
   this->declare_parameter<int>("frequency", 0.0);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<MPU6050Driver>());

@@ -4,14 +4,28 @@
 #include <string>
 #include <unordered_map>
 
-class MPU6050Sensor {
- public:
+class MPU6050Sensor
+{
+public:
   MPU6050Sensor(int bus_number = 1);
   ~MPU6050Sensor();
 
-  enum AccelRange { ACC_2_G, ACC_4_G, ACC_8_G, ACC_16_G };
-  enum GyroRange { GYR_250_DEG_S, GYR_500_DEG_S, GYR_1000_DEG_S, GYR_2000_DEG_S };
-  enum DlpfBandwidth {
+  enum AccelRange
+  {
+    ACC_2_G,
+    ACC_4_G,
+    ACC_8_G,
+    ACC_16_G
+  };
+  enum GyroRange
+  {
+    GYR_250_DEG_S,
+    GYR_500_DEG_S,
+    GYR_1000_DEG_S,
+    GYR_2000_DEG_S
+  };
+  enum DlpfBandwidth
+  {
     DLPF_260_HZ,
     DLPF_184_HZ,
     DLPF_94_HZ,
@@ -36,7 +50,7 @@ class MPU6050Sensor {
   void setAccelerometerOffset(double accel_x_offset, double accel_y_offset, double accel_z_offset);
   void calibrate();
 
- private:
+private:
   double convertRawGyroscopeData(int16_t gyro_raw_) const;
   double convertRawAccelerometerData(int16_t accel_raw_) const;
   int readGyroscopeRange();
@@ -82,4 +96,4 @@ class MPU6050Sensor {
   static constexpr int CALIBRATION_COUNT{200};
 };
 
-#endif  // MPU6050SENSOR_H
+#endif // MPU6050SENSOR_H
