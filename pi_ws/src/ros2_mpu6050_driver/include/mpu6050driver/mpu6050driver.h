@@ -5,11 +5,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
-class MPU6050Driver : public rclcpp::Node {
- public:
+class MPU6050Driver : public rclcpp::Node
+{
+public:
   MPU6050Driver();
 
- private:
+private:
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr publisher_;
   std::unique_ptr<MPU6050Sensor> mpu6050_;
   size_t count_;
@@ -18,4 +19,4 @@ class MPU6050Driver : public rclcpp::Node {
   void declareParameters();
 };
 
-#endif  // MPU6050DRIVER_H
+#endif // MPU6050DRIVER_H

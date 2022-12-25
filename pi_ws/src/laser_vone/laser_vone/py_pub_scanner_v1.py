@@ -4,13 +4,17 @@ import serial
 import time
 import math
 import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 from gpiozero import AngularServo
 from gpiozero.pins.pigpio import PiGPIOFactory
 from sensor_msgs.msg import LaserScan
 
 # Servo
 INPUT_PIN = 18
+INPUT_PIN = 18
 SERVO_GPIO_PORT = 17
+MIN_PULSE_WIDTH = 1280 / 1000000
+MAX_PULSE_WIDTH = 1720 / 1000000
 MIN_PULSE_WIDTH = 1280 / 1000000
 MAX_PULSE_WIDTH = 1720 / 1000000
 PIN_FACTORY = PiGPIOFactory()
@@ -20,12 +24,11 @@ DEGREE = 30
 SERIAL_PATH = "/dev/ttyS0"
 COM_RATE = 115200
 
-servo = AngularServo(
-    SERVO_GPIO_PORT,
-    min_pulse_width=MIN_PULSE_WIDTH,
-    max_pulse_width=MAX_PULSE_WIDTH,
-    pin_factory=PIN_FACTORY,
-)
+# Speed, Steps
+STEPS = 0.4  # 1 -> jedes grad
+SPEED = 1  # max: 1
+SUM_STEPS = DEGREE * 2 / STEPS
+SLEEP = MIN_SPEED_FOR_ROTATION / SUM_STEPS / SPEED
 
 
 class Scanner(Node):
