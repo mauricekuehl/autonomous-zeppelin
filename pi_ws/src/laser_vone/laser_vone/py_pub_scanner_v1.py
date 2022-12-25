@@ -45,23 +45,42 @@ class Scanner(Node):
         where_in_middle = False
         RPM = 2
         HZ = 1000
-        MIN_LENGTH = HZ / RPM * 0.9
+        MIN_LENGTH = 30
 
         self.servo.angle = 30
 
+        err = 0
+        good = 0
+        skip = 0
+
+        counter = 0
         while True:
-            degree = self.get_degree()
-            if degree >= 80 and degree <= 90:
-                where_in_middle = True
-            elif (
-                where_in_middle
-                and degree >= 20
-                and degree <= 30
-                and len(arr) > MIN_LENGTH
-            ):
-                self.publish_data(arr)
-                where_in_middle = False
-                arr = []
+            counter += 1
+            if counter > 10:
+                while GPIO.input(INPUT_PIN) == 0:
+                    pass
+                t = time.time()
+                while GPIO.input(INPUT_PIN) == 1:
+                    pass
+                degree = round(100000 * (time.time() - t))
+                counter = 0
+
+                if degree >= 80 and degree <= 90:
+                    where_in_middle = True
+                elif (
+                    where_in_middle
+                    and degree >= 20
+                    and degree <= 30
+                    and len(arr) > MIN_LENGTH
+                ):
+                    # if len(arr) == 470:
+                    self.publish_data(arr)
+                    where_in_middle = False
+                    arr = []
+                    print("good", good, "err", err, "skip", skip)
+                    good = 0
+                    err = 0
+                    skip = 0
 
             count = self.ser.in_waiting
             if count > 8:
@@ -70,20 +89,18 @@ class Scanner(Node):
                 if recv[0] == 0x59 and recv[1] == 0x59:
                     distance = recv[2] + recv[3] * 256
                     # strength = recv[4] + recv[5] * 256
-                    arr.append(float(distance))
-
-    def get_degree(self):
-        while GPIO.input(INPUT_PIN) == 0:
-            pass
-        t = time.time()
-        while GPIO.input(INPUT_PIN) == 1:
-            pass
-        # print(round(100000 * (time.time() - t)))
-        return round(100000 * (time.time() - t))
+                    arr.append(float(distance / 100))
+                    # print(distance / 100)
+                    good += 1
+                else:
+                    # print("err")
+                    err += 1
+            else:
+                skip += 1
 
     def publish_data(self, distance_arr):
         # print(distance_arr)
-        taget_length = 470
+        taget_length = 170
         print(len(distance_arr) - taget_length)
         if len(distance_arr) < taget_length:
             return
@@ -99,7 +116,10 @@ class Scanner(Node):
         scan.angle_min = 0.0
         scan.angle_max = math.radians(360)
         scan.angle_increment = float(math.radians(360) / len(distance_arr))
-        print(scan.angle_increment * len(distance_arr), len(distance_arr))
+        print(
+            scan.angle_increment * len(distance_arr) / math.radians(360),
+            len(distance_arr),
+        )
         scan.ranges = distance_arr
 
         self.publisher.publish(scan)
