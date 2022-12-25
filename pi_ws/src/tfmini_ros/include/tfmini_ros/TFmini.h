@@ -8,7 +8,7 @@
 #include <termios.h>
 #include <errno.h>
 #include <string>
-#include "sensor_msgs/msg/range.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 namespace benewake
 {
