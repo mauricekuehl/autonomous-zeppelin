@@ -33,13 +33,13 @@ ekf_filter_node:
     world_frame: odom # Defaults to the value of odom_frame if unspecified
     # TODO this might be change to map_frame as stated above
 
-    odom0: motor/odom
-    # prettier-ignore
-    odom0_config: [false,  false,  false, # pos
-                   false, false, false, # orientation
-                   true, false, false, # linear
-                   false, false, true, # angular
-                   false, false, false] # linear acc
+    # odom0: motor/odom
+    # # prettier-ignore
+    # odom0_config: [false,  false,  false, # pos
+    #                false, false, false, # orientation
+    #                true, false, false, # linear
+    #                false, false, true, # angular
+    #                false, false, false] # linear acc
 
     # pose0: pose
     # # prettier-ignore
