@@ -11,7 +11,7 @@ def generate_launch_description():
     default_model_path = os.path.join(
         pkg_share, "src/description/sam_bot_description.urdf"
     )
-    default_rviz_config_path = os.path.join(pkg_share, "rviz/urdf_config.rviz")
+    default_rviz_config_path = os.path.join(pkg_share, "rviz/nav2_default_view.rviz")
     world_path = os.path.join(pkg_share, "world/my_world.sdf")
 
     robot_state_publisher_node = launch_ros.actions.Node(
@@ -49,6 +49,18 @@ def generate_launch_description():
             os.path.join(pkg_share, "config/ekf.yaml"),
             # {"use_sim_time": LaunchConfiguration("use_sim_time")},
         ],
+    )
+
+    robot_localization_node_odom_only = launch_ros.actions.Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_filter_node",
+        output="screen",
+        parameters=[
+            os.path.join(pkg_share, "config/ekf_only_odom.yaml"),
+            # {"use_sim_time": LaunchConfiguration("use_sim_time")},
+        ],
+        remappings=[("/odometry/filtered", "/odometry/filtered_only_odom")],
     )
 
     return launch.LaunchDescription(
@@ -89,6 +101,7 @@ def generate_launch_description():
             robot_state_publisher_node,
             # spawn_entity,
             robot_localization_node,
+            robot_localization_node_odom_only,
             rviz_node,
         ]
     )

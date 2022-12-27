@@ -37,8 +37,8 @@ ekf_filter_node:
     # prettier-ignore
     odom0_config: [false,  false,  false, # pos
                    false, false, false, # orientation
-                   true, false, false, # linear
-                   false, false, true, # angular
+                   true, true, false, # linear
+                   false, false, false, # angular
                    false, false, false] # linear acc
 
     # pose0: pose
