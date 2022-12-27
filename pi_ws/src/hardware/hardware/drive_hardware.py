@@ -50,12 +50,18 @@ class Controller(Node):
         self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
         self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_LINEAR * 5  # just a guess
 
-        self.COVARIANCE_LINEAR_X = 0  # TODO
-        self.COVARIANCE_ANGULAR_Z = 0
-
-        self.COVARIANCE_MATRIX = [0 for i in range(36)]
-        self.COVARIANCE_MATRIX[0] = self.COVARIANCE_LINEAR_X
-        self.COVARIANCE_MATRIX[35] = self.COVARIANCE_ANGULAR_Z
+        self.COVARIANCE_MATRIX = [0.0 for i in range(36)]
+        self.COVARIANCE_MATRIX[0] = 0.1
+        # set covariance for linear y
+        self.COVARIANCE_MATRIX[7] = 0.1
+        # set covariance for linear z
+        self.COVARIANCE_MATRIX[14] = 0.0
+        # set covariance for angular x
+        self.COVARIANCE_MATRIX[21] = 0.0
+        # set covariance for angular y
+        self.COVARIANCE_MATRIX[28] = 0.0
+        # set covariance for angular z
+        self.COVARIANCE_MATRIX[35] = 0.1
 
         # self.servo_left = AngularServo(
         #     SERVO_GPIO_PORT_LEFT,
@@ -107,6 +113,10 @@ class Controller(Node):
                 "r",
                 self.power_right,
             )
+            if self.power_left < self.MIN_POWER:
+                self.power_left = self.MIN_POWER
+            elif self.power_right < self.MIN_POWER:
+                self.power_right = self.MIN_POWER
         # this should not happen, but just in case:
 
         if (
@@ -176,7 +186,9 @@ class Controller(Node):
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
         msg.twist.twist.linear.x = self.x_linear  # m/s
-        # msg.twist.covariance = self.COVARIANCE_MATRIX
+        # for i in self.COVARIANCE_MATRIX:
+        #    print(i)
+        msg.twist.covariance = self.COVARIANCE_MATRIX
         msg.twist.twist.angular.z = self.z_angular  # radians/second
         self.odometry_publisher.publish(msg)
 
