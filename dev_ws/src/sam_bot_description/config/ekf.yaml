@@ -38,7 +38,7 @@ ekf_filter_node:
     odom0_config: [false,  false,  false, # pos
                    false, false, false, # orientation
                    true, true, false, # linear
-                   false, false, false, # angular
+                   false, false, true, # angular
                    false, false, false] # linear acc
 
     # pose0: pose
@@ -49,10 +49,10 @@ ekf_filter_node:
     #                false, false, false, # angular
     #                false, false, false] # linear acc
 
-    imu0: imu/imu
-    # prettier-ignore
-    imu0_config: [false, false, false,
-                  true,  true,  true,
-                  false, false, false,
-                  false, false, false,
-                  true, true, true]
+    # imu0: imu/imu
+    # # prettier-ignore
+    # imu0_config: [false, false, false,
+    #               true,  true,  true,
+    #               false, false, false,
+    #               false, false, false,
+    #               true, true, true]

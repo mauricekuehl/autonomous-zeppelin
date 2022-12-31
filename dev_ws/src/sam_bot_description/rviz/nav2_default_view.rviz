@@ -11,6 +11,7 @@ Panels:
         - /TF1/Tree1
         - /LaserScan1
         - /Odometry1
+        - /Odometry1/Shape1
       Splitter Ratio: 0.5833333134651184
     Tree Height: 531
   - Class: rviz_common/Selection
@@ -128,8 +129,6 @@ Visualization Manager:
           Value: true
         lidar_link:
           Value: true
-        map:
-          Value: true
         odom:
           Value: true
         wheel_left:
@@ -142,7 +141,22 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        odom:
+          base_link:
+            base_footprint:
+              {}
+            carbon_rod:
+              {}
+            haul:
+              {}
+            imu_link:
+              {}
+            lidar_link:
+              {}
+            wheel_left:
+              {}
+            wheel_right:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -565,7 +579,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 100
+      Keep: 200
       Name: Odometry
       Position Tolerance: 0.10000000149011612
       Shape:
@@ -573,10 +587,10 @@ Visualization Manager:
         Axes Length: 1
         Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
-        Head Length: 0.30000001192092896
-        Head Radius: 0.10000000149011612
-        Shaft Length: 1
-        Shaft Radius: 0.05000000074505806
+        Head Length: 0.20000000298023224
+        Head Radius: 0.07999999821186066
+        Shaft Length: 0.10000000149011612
+        Shaft Radius: 0.004999999888241291
         Value: Arrow
       Topic:
         Depth: 5
@@ -589,7 +603,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_link
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -623,7 +637,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.6300036907196045
+      Angle: -1.5600037574768066
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -633,7 +647,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 97.84397888183594
+      Scale: 247.43211364746094
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
       X: -0.044467076659202576

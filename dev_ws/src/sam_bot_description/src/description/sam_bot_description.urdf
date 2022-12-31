@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- TODO make base footprint bigger -->
 <robot name="sam_bot" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <material name="blue">
@@ -22,8 +23,8 @@
   </material>
 
   <!-- Define robot constants -->
-  <xacro:property name="haul_width" value="0.2" />
-  <xacro:property name="haul_length" value="0.3" />
+  <xacro:property name="haul_width" value="0.7" />
+  <xacro:property name="haul_length" value="3.2" />
   <xacro:property name="haul_over_ground" value="0.2" />
 
 
