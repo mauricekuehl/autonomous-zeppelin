@@ -14,6 +14,17 @@ MAX_PULSE_WIDTH = 0.002470
 # PIN_FACTORY = PiGPIOFactory()
 
 
+"""
+Notes:
+The Max Speed for Nav2 is the speed for max power
+Max Power should be set low by default
+
+TODO max power backwards
+TODO radian speed
+TODO calculate air resistance into cmd_vel subscriber
+"""
+
+
 class Controller(Node):
     def __init__(self):
         super().__init__("drive_hardware")
@@ -28,27 +39,35 @@ class Controller(Node):
         """to messure without the robot"""
         self.MASS = 0.7  # kg
         self.MAX_POWER = 1  # 1 = 100% power
-        self.ACCELERATION = 2  # m/s² for max power
-        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
-        self.MIN_POWER = (
-            0.05  # only provides a warning right know as nav2 should not undergo this
+
+        # at max power
+        self.FORCE_FORWARD_NEWTON = 3
+        self.FORCE_BACKWARDS_NEWTON = 1
+
+        self.MIN_POWER = 0.05  # only provides a warning right know as nav2 should not undergo this and if so it is set to min power
+        # TDDO: uns polynomial if power messurement is shit
+
+        """caclulation"""
+        self.FORCE = self.FORCE_FORWARD_NEWTON
+
+        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = (
+            self.FORCE_FORWARD_NEWTON / self.FORCE_BACKWARDS_NEWTON
         )
 
         """to messure with helium for cmd_vel"""
         speed = 1  # m/s for max power
-        power = self.MAX_POWER  # max power should be used for this, 50% maybe too
-        self.POWER_FOR_ONE_METER_PER_SECOND = power / speed
+        self.POWER_FOR_ONE_METER_PER_SECOND = self.MAX_POWER / speed
 
-        # tune angular movement, it does not really mean what the name says
+        # tune angular movement, it does not really mean what the name says. Higher = faster turns
         self.WHEEL_SEPERATION = 1  # m
 
         """to tune the odometry estimation"""
-        self.ACCELERATION_ANGULAR = self.ACCELERATION  # m/s²
+        self.FORCE_ANGULAR = self.FORCE  # m/s²
 
         # F_n = F_f = m * a = drag * v²
         # drag = m * a / v²
-        self.AIR_FRICTION_LINEAR = self.MASS * self.ACCELERATION / speed**2
-        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_LINEAR * 5  # just a guess
+        self.AIR_FRICTION_LINEAR = self.FORCE / speed**2
+        self.AIR_FRICTION_ANGULAR = self.AIR_FRICTION_LINEAR * 3  # just a guess
 
         self.COVARIANCE_MATRIX = [0.0 for i in range(36)]
         self.COVARIANCE_MATRIX[0] = 0.1
@@ -87,6 +106,15 @@ class Controller(Node):
 
         self.create_timer(0.02, self.step)
 
+    def get_power_for_speed_x(self, speed_x, speed_z):
+        # F_f = F_n = drag * v²
+        return (self.FORCE / self.AIR_FRICTION_LINEAR) ** 0.5
+
+    def get_power_for_speed_x(self, speed):
+        # F_f = F_n = drag * v²
+        # TODO is this correct?
+        return (self.FORCE_ANGULAR / self.AIR_FRICTION_ANGULAR) ** 0.5
+
     def cmd_vel_callback(self, twist):
         power_right = (
             twist.linear.x + self.WHEEL_SEPERATION * twist.angular.z
@@ -101,10 +129,16 @@ class Controller(Node):
     def set_max_min_esc(self):
         pass
 
+    def get_pos_neg(self, power):
+        if power > 0:
+            return 1
+        else:
+            return -1
+
     def execute_power_levels(self):  # -1 = 1 in terms of thrust
         # this is just a warning with no huge consequences if it happens
-        if (0 < self.power_left and self.power_left < self.MIN_POWER) or (
-            0 < self.power_right and self.power_right < self.MIN_POWER
+        if (0 < abs(self.power_left) and abs(self.power_left) < self.MIN_POWER) or (
+            0 < abs(self.power_right) and abs(self.power_right) < self.MIN_POWER
         ):
             print(
                 "WARNING: Power too low",
@@ -113,12 +147,12 @@ class Controller(Node):
                 "r",
                 self.power_right,
             )
-            if self.power_left < self.MIN_POWER:
-                self.power_left = self.MIN_POWER
-            elif self.power_right < self.MIN_POWER:
-                self.power_right = self.MIN_POWER
-        # this should not happen, but just in case:
+            if abs(self.power_left) < self.MIN_POWER:
+                self.power_left = self.MIN_POWER * self.get_pos_neg(self.power_left)
+            elif abs(self.power_right) < self.MIN_POWER:
+                self.power_right = self.MIN_POWER * self.get_pos_neg(self.power_right)
 
+        # this should not happen, but just in case:
         if (
             abs(self.power_left) > self.MAX_POWER
             or abs(self.power_right) > self.MAX_POWER
@@ -137,11 +171,11 @@ class Controller(Node):
                 self.power_left = self.MAX_POWER
                 self.power_right = self.MAX_POWER
             elif abs(self.power_left) > self.MAX_POWER:
-                self.power_right = self.power_right / self.power_left
-                self.power_left = self.MAX_POWER
+                self.power_right = self.power_right / abs(self.power_left)
+                self.power_left = self.MAX_POWER * self.get_pos_neg(self.power_left)
             elif abs(self.power_right) > self.MAX_POWER:
-                self.power_left = self.power_left / self.power_right
-                self.power_right = self.MAX_POWER
+                self.power_left = self.power_left / abs(self.power_right)
+                self.power_right = self.MAX_POWER * self.get_pos_neg(self.power_right)
 
         if self.power_left < 0:
             power_left = self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
@@ -161,21 +195,20 @@ class Controller(Node):
         self.last_time = time_now
 
         """ Magic: """
-        acceleration_linear_x = (
-            (self.power_right + self.power_left) * 0.5 * self.ACCELERATION
-        )
-        acceleration_angular_z = (
-            (self.power_right - self.power_left) * 0.5 * self.ACCELERATION_ANGULAR
+        force_linear_x = (self.power_right + self.power_left) * 0.5 * self.FORCE
+        force_angular_z = (
+            (self.power_right - self.power_left) * 0.5 * self.FORCE_ANGULAR
         )
 
         net_force_linear_x = (
-            acceleration_linear_x * self.MASS
+            force_linear_x
             - self.AIR_FRICTION_LINEAR * self.x_linear * abs(self.x_linear)
         )
         net_force_angular_z = (
-            acceleration_angular_z * self.MASS
+            force_angular_z
             - self.AIR_FRICTION_ANGULAR * self.z_angular * abs(self.z_angular)
         )
+
         self.x_linear += net_force_linear_x / self.MASS * d_time
         self.z_angular += (
             net_force_angular_z / self.MASS * d_time
@@ -186,8 +219,6 @@ class Controller(Node):
         msg.header.frame_id = "odom"
         msg.child_frame_id = "base_link"
         msg.twist.twist.linear.x = self.x_linear  # m/s
-        # for i in self.COVARIANCE_MATRIX:
-        #    print(i)
         msg.twist.covariance = self.COVARIANCE_MATRIX
         msg.twist.twist.angular.z = self.z_angular  # radians/second
         self.odometry_publisher.publish(msg)
