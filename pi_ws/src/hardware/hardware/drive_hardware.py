@@ -22,12 +22,14 @@ Max Power should be set low by default
 TODO max power backwards
 TODO radian speed
 TODO calculate air resistance into cmd_vel subscriber
+TODO kill switch
 """
 
 
 class Controller(Node):
     def __init__(self):
         super().__init__("drive_hardware")
+        self.count = 0
         self.power_right = 0  # -1 to 1
         self.power_left = 0  # -1 to 1
 
@@ -106,20 +108,14 @@ class Controller(Node):
 
         self.create_timer(0.02, self.step)
 
-    def get_power_for_speed_x(self, speed_x, speed_z):
-        # F_f = F_n = drag * v²
-        return (self.FORCE / self.AIR_FRICTION_LINEAR) ** 0.5
-
-    def get_power_for_speed_x(self, speed):
-        # F_f = F_n = drag * v²
-        # TODO is this correct?
-        return (self.FORCE_ANGULAR / self.AIR_FRICTION_ANGULAR) ** 0.5
-
     def cmd_vel_callback(self, twist):
+        print("into---", twist.linear.x, twist.angular.z)
         power_right = (
             twist.linear.x + self.WHEEL_SEPERATION * twist.angular.z
         )  # this was for wheels...
         power_left = twist.linear.x - self.WHEEL_SEPERATION * twist.angular.z
+
+        print("in", power_right, power_left)
 
         # TODO use polynomial function to map from twist to power
         self.power_left = power_left * self.POWER_FOR_ONE_METER_PER_SECOND
@@ -134,6 +130,14 @@ class Controller(Node):
             return 1
         else:
             return -1
+
+    def get_force_for_speed_x(self, speed):
+        # F_f = F_n = drag * v²
+        return self.AIR_FRICTION_LINEAR * speed**2 * self.get_pos_neg(speed)
+
+    def get_force_for_speed_z(self, speed):
+        # F_f = F_n = drag * v²
+        return self.AIR_FRICTION_LINEAR * speed**2 * self.get_pos_neg(speed)
 
     def execute_power_levels(self):  # -1 = 1 in terms of thrust
         # this is just a warning with no huge consequences if it happens
@@ -168,8 +172,8 @@ class Controller(Node):
                 abs(self.power_left) > self.MAX_POWER
                 and abs(self.power_right) > self.MAX_POWER
             ):
-                self.power_left = self.MAX_POWER
-                self.power_right = self.MAX_POWER
+                self.power_left = self.MAX_POWER * self.get_pos_neg(self.power_left)
+                self.power_right = self.MAX_POWER * self.get_pos_neg(self.power_right)
             elif abs(self.power_left) > self.MAX_POWER:
                 self.power_right = self.power_right / abs(self.power_left)
                 self.power_left = self.MAX_POWER * self.get_pos_neg(self.power_left)
@@ -178,18 +182,26 @@ class Controller(Node):
                 self.power_right = self.MAX_POWER * self.get_pos_neg(self.power_right)
 
         if self.power_left < 0:
+            self.power_left = 0
             power_left = self.power_left * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
         else:
             power_left = self.power_left
         if self.power_right < 0:
+            self.power_right = 0
             power_right = self.power_right * self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED
         else:
             power_right = self.power_right
+
+        print("-", self.power_left, self.power_right)
 
         # self.servo_left.angle = power_left
         # self.servo_right.angle = power_right
 
     def step(self):
+        self.count += 1
+        if self.count % 100 == 0:
+            print("step")
+            self.count = 0
         time_now = time()
         d_time = time_now - self.last_time  # Seconds
         self.last_time = time_now
