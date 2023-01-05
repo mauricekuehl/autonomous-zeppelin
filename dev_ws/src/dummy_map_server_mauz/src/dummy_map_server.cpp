@@ -23,6 +23,11 @@
 
 #include "nav_msgs/msg/occupancy_grid.hpp"
 
+int d(int x, int y, int width)
+{
+  return x + y * width;
+}
+
 int main(int argc, char *argv[])
 {
   std::cout << "Hi";
@@ -62,19 +67,60 @@ int main(int argc, char *argv[])
   int lhs = 0;
   int center = 1;
   int rhs = 2;
+
+  for (size_t i = 0; i < msg.info.width * msg.info.height; ++i)
+  {
+    if (i % msg.info.width == 0)
+    {
+      msg.data[i] = 100;
+    }
+    else if (i == 0 || i == msg.info.width - 1)
+    {
+      msg.data[i] = 100;
+    }
+  }
+
+  // for (int i = 0; i < 100; i++)
+  // {
+  //   msg.data[d(100, 200 + i, msg.info.width)] = 100;
+  // }
+  // for (int i = 0; i < 100; i++)
+  // {
+  //   msg.data[d(100 + i, 200, msg.info.width)] = 100;
+  // }
+  // for (int i = 0; i < 100; i++)
+  // {
+  //   msg.data[d(200, 100 + i, msg.info.width)] = 100;
+  // }
+  // for (int i = 0; i < 100; i++)
+  // {
+  //   if (i < 59 || i > 68)
+  //     msg.data[d(100 + i, 100, msg.info.width)] = 100;
+  // }
+  // for (int i = 0; i < 10; i++)
+  // {
+  //   msg.data[d(245 + i, 100, msg.info.width)] = 100;
+  // }
+
+  for (int i = 0; i < 300; i++)
+  {
+    msg.data[d(250 + i, 50, msg.info.width)] = 100;
+  }
+  for (int i = 0; i < 300; i++)
+  {
+    msg.data[d(50 + i, 50, msg.info.width)] = 100;
+  }
+  for (int i = 0; i < 300; i++)
+  {
+    msg.data[d(250, 50 + i, msg.info.width)] = 100;
+  }
+  for (int i = 0; i < 300; i++)
+  {
+    msg.data[d(50, 250 + i, msg.info.width)] = 100;
+  }
+
   while (rclcpp::ok())
   {
-    for (size_t i = 0; i < msg.info.width * msg.info.height; ++i)
-    {
-      if (i % msg.info.width == 0)
-      {
-        msg.data[i] = 100;
-      }
-      else if (i == 0 || i == msg.info.width - 1)
-      {
-        msg.data[i] = 100;
-      }
-    }
     msg.header.stamp = clock->now();
 
     map_pub->publish(msg);
