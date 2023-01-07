@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- TODO make base footprint bigger -->
 <robot name="sam_bot" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <material name="blue">

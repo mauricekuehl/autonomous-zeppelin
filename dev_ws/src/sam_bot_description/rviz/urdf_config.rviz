@@ -5,14 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /RobotModel1
-        - /RobotModel1/Links1
-        - /RobotModel1/Links1/base_footprint1
-        - /RobotModel1/Links1/base_link1
-        - /RobotModel1/Links1/camera_depth_frame1
-        - /RobotModel1/Links1/camera_link1
-        - /RobotModel1/Links1/front_caster1
-        - /RobotModel1/Links1/imu_link1
-        - /RobotModel1/Links1/lidar_link1
+        - /Imu1
         - /Imu1/Box properties1
         - /Imu1/Axes properties1
         - /Odometry1/Topic1
@@ -60,7 +53,7 @@ Visualization Manager:
       Links:
         All Links Enabled: true
         Expand Joint Details: false
-        Expand Link Details: true
+        Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
         base_footprint:
@@ -68,20 +61,15 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
         base_link:
-          Alpha: 2
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_depth_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        camera_link:
+        carbon_rod:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_caster:
+        haul:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -90,8 +78,17 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
         lidar_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -113,11 +110,9 @@ Visualization Manager:
           Value: true
         base_link:
           Value: true
-        camera_depth_frame:
+        carbon_rod:
           Value: true
-        camera_link:
-          Value: true
-        front_caster:
+        haul:
           Value: true
         imu_link:
           Value: true
@@ -125,20 +120,32 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
+        wheel_left:
+          Value: true
+        wheel_right:
+          Value: true
       Marker Scale: 0.3787687122821808
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        base_link:
-          base_footprint: {}
-          camera_link:
-            camera_depth_frame: {}
-          front_caster: {}
-          imu_link: {}
-          lidar_link: {}
-          odom: {}
+        odom:
+          base_link:
+            base_footprint:
+              {}
+            carbon_rod:
+              {}
+            haul:
+              {}
+            imu_link:
+              {}
+            lidar_link:
+              {}
+            wheel_left:
+              {}
+            wheel_right:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 0.699999988079071
@@ -203,7 +210,7 @@ Visualization Manager:
         Derotate acceleration: true
         Enable acceleration: false
       Axes properties:
-        Axes scale: 0.20000000298023224
+        Axes scale: 0.5
         Enable axes: true
       Box properties:
         Box alpha: 0.10000000149011612
@@ -351,5 +358,5 @@ Window Geometry:
   Hide Right Dock: false
   QMainWindow State: 000000ff00000000fd000000010000000000000156000003b9fc0200000001fb000000100044006900730070006c006100790073010000003d000003b9000000c900ffffff00000624000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Width: 1920
-  X: 0
-  Y: 0
+  X: 74
+  Y: 27
