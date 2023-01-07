@@ -237,17 +237,17 @@ def generate_launch_description():
                 arguments=["--ros-args", "--log-level", log_level],
                 remappings=remappings + [("cmd_vel", "cmd_vel_nav")],
             ),
-            # Node(
-            #     package="nav2_smoother",
-            #     executable="smoother_server",
-            #     name="smoother_server",
-            #     output="screen",
-            #     respawn=use_respawn,
-            #     respawn_delay=2.0,
-            #     parameters=[configured_params],
-            #     arguments=["--ros-args", "--log-level", log_level],
-            #     remappings=remappings,
-            # ),
+            Node(
+                package="nav2_smoother",
+                executable="smoother_server",
+                name="smoother_server",
+                output="screen",
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=["--ros-args", "--log-level", log_level],
+                remappings=remappings,
+            ),
             Node(
                 package="nav2_planner",
                 executable="planner_server",
@@ -330,13 +330,13 @@ def generate_launch_description():
                 parameters=[configured_params],
                 remappings=remappings + [("cmd_vel", "cmd_vel_nav")],
             ),
-            # ComposableNode(
-            #     package="nav2_smoother",
-            #     plugin="nav2_smoother::SmootherServer",
-            #     name="smoother_server",
-            #     parameters=[configured_params],
-            #     remappings=remappings,
-            # ),
+            ComposableNode(
+                package="nav2_smoother",
+                plugin="nav2_smoother::SmootherServer",
+                name="smoother_server",
+                parameters=[configured_params],
+                remappings=remappings,
+            ),
             ComposableNode(
                 package="nav2_planner",
                 plugin="nav2_planner::PlannerServer",
@@ -395,21 +395,21 @@ def generate_launch_description():
     # Create the launch description and populate
     ld = LaunchDescription()
 
-    # Set environment variables
-    ld.add_action(stdout_linebuf_envvar)
+    # # Set environment variables
+    # ld.add_action(stdout_linebuf_envvar)
 
-    # Declare the launch options
-    ld.add_action(declare_namespace_cmd)
-    ld.add_action(declare_use_sim_time_cmd)
-    ld.add_action(declare_params_file_cmd)
-    ld.add_action(declare_autostart_cmd)
-    ld.add_action(declare_use_composition_cmd)
-    ld.add_action(declare_container_name_cmd)
-    ld.add_action(declare_use_respawn_cmd)
-    ld.add_action(declare_log_level_cmd)
-    # Add the actions to launch all of the navigation nodes
-    ld.add_action(load_nodes)
-    ld.add_action(load_composable_nodes)
+    # # Declare the launch options
+    # ld.add_action(declare_namespace_cmd)
+    # ld.add_action(declare_use_sim_time_cmd)
+    # ld.add_action(declare_params_file_cmd)
+    # ld.add_action(declare_autostart_cmd)
+    # ld.add_action(declare_use_composition_cmd)
+    # ld.add_action(declare_container_name_cmd)
+    # ld.add_action(declare_use_respawn_cmd)
+    # ld.add_action(declare_log_level_cmd)
+    # # Add the actions to launch all of the navigation nodes
+    # ld.add_action(load_nodes)
+    # ld.add_action(load_composable_nodes)
 
     """none nav2"""
     ld.add_action(gui)
@@ -417,12 +417,12 @@ def generate_launch_description():
     ld.add_action(rviz_config)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(robot_state_publisher_node)
-    # ld.add_action(robot_localization_node)
-    ld.add_action(robot_localization_node_odom_only)
+    ld.add_action(robot_localization_node)
+    # ld.add_action(robot_localization_node_odom_only)
     ld.add_action(rviz_node)
     ld.add_action(joy_node)
     ld.add_action(teleop_node)
     ld.add_action(slam)
-    ld.add_action(map_dummy)
+    # ld.add_action(map_dummy)
 
     return ld
