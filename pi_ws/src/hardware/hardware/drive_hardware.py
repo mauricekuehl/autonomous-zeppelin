@@ -1,5 +1,5 @@
-# from gpiozero import AngularServo
-# from gpiozero.pins.pigpio import PiGPIOFactory
+from gpiozero import AngularServo
+from gpiozero.pins.pigpio import PiGPIOFactory
 from time import time, sleep
 from math import sin, cos
 import rclpy
@@ -7,11 +7,14 @@ from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 
-SERVO_GPIO_PORT_LEFT = 1
-SERVO_GPIO_PORT_RIGHT = 0
-MIN_PULSE_WIDTH = 0.000540
-MAX_PULSE_WIDTH = 0.002470
-# PIN_FACTORY = PiGPIOFactory()
+SERVO_GPIO_PORT_LEFT = 23
+SERVO_GPIO_PORT_RIGHT = 24
+MIN_PULSE_WIDTH = 1000 / 1000000
+MAX_PULSE_WIDTH = 2000 / 1000000
+print("MIN_PULSE_WIDTH", MIN_PULSE_WIDTH)
+print("MAX_PULSE_WIDTH", MAX_PULSE_WIDTH)
+PIN_FACTORY = PiGPIOFactory()
+# 0.07 dead band
 
 
 class Controller(Node):
@@ -29,9 +32,9 @@ class Controller(Node):
         self.MASS = 0.7  # kg
         self.MAX_POWER = 1  # 1 = 100% power
         self.ACCELERATION = 2  # m/s² for max power
-        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1.5
+        self.HOW_MUCH_MORE_POWER_BACKWARDS_NEEDED = 1
         self.MIN_POWER = (
-            0.05  # only provides a warning right know as nav2 should not undergo this
+            0.001  # only provides a warning right know as nav2 should not undergo this
         )
 
         """to messure with helium for cmd_vel"""
@@ -57,24 +60,24 @@ class Controller(Node):
         self.COVARIANCE_MATRIX[0] = self.COVARIANCE_LINEAR_X
         self.COVARIANCE_MATRIX[35] = self.COVARIANCE_ANGULAR_Z
 
-        # self.servo_left = AngularServo(
-        #     SERVO_GPIO_PORT_LEFT,
-        #     min_pulse_width=MIN_PULSE_WIDTH,
-        #     max_pulse_width=MAX_PULSE_WIDTH,
-        #     pin_factory=PIN_FACTORY,
-        #     initial_angle=0,
-        #     min_angle=-1,
-        #     max_angle=1,
-        # )
-        # self.servo_right = AngularServo(
-        #     SERVO_GPIO_PORT_RIGHT,
-        #     min_pulse_width=MIN_PULSE_WIDTH,
-        #     max_pulse_width=MAX_PULSE_WIDTH,
-        #     pin_factory=PIN_FACTORY,
-        #     initial_angle=0,
-        #     min_angle=-1,
-        #     max_angle=1,
-        # )
+        self.servo_left = AngularServo(
+            SERVO_GPIO_PORT_LEFT,
+            min_pulse_width=MIN_PULSE_WIDTH,
+            max_pulse_width=MAX_PULSE_WIDTH,
+            pin_factory=PIN_FACTORY,
+            initial_angle=0,
+            # min_angle=-1,
+            # max_angle=1,
+        )
+        self.servo_right = AngularServo(
+            SERVO_GPIO_PORT_RIGHT,
+            min_pulse_width=MIN_PULSE_WIDTH,
+            max_pulse_width=MAX_PULSE_WIDTH,
+            pin_factory=PIN_FACTORY,
+            initial_angle=0,
+            # min_angle=-1,
+            # max_angle=1,
+        )
 
         self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 1)
         self.odometry_publisher = self.create_publisher(Odometry, "motor/odom", 1)
@@ -93,7 +96,9 @@ class Controller(Node):
         self.execute_power_levels()
 
     def set_max_min_esc(self):
-        pass
+        self.set_power(1, 1)
+        sleep(3)
+        self.set_power(0, 0)
 
     def execute_power_levels(self):  # -1 = 1 in terms of thrust
         # this is just a warning with no huge consequences if it happens
@@ -142,8 +147,12 @@ class Controller(Node):
         else:
             power_right = self.power_right
 
-        # self.servo_left.angle = power_left
-        # self.servo_right.angle = power_right
+        self.set_power(power_left, power_right)
+
+    def set_power(self, power_left, power_right):
+        print("executing power levels", power_left, power_right, "")
+        self.servo_left.angle = power_left * 90
+        self.servo_right.angle = power_right * 90
 
     def step(self):
         time_now = time()
@@ -184,6 +193,9 @@ class Controller(Node):
 def main():
     rclpy.init()
     controller = Controller()
+    i = input("Press s to set max and min esc values")
+    if i == "s":
+        controller.set_max_min_esc()
     rclpy.spin(controller)
     rclpy.shutdown()
 

@@ -252,6 +252,7 @@ DEFAULT_RADIUS_ACC = 0x3E8
 #: Used to get covariance matrices (stddev^2 = variance)
 #: values taken from this ROS1 driver from octanis:
 #: https://github.com/Octanis1/bosch_imu_driver/commit/d1132e27ecff46a63c128f7ecacc245c98b2811a
+
 DEFAULT_VARIANCE_ACC = [0.017, 0.017, 0.017]
 DEFAULT_VARIANCE_ANGULAR_VEL = [0.04, 0.04, 0.04]
 DEFAULT_VARIANCE_ORIENTATION = [0.0159, 0.0159, 0.0159]
