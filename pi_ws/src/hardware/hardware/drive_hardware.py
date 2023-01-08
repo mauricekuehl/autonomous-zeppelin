@@ -14,8 +14,9 @@ MAX_PULSE_WIDTH = 2000 / 1000000
 print("MIN_PULSE_WIDTH", MIN_PULSE_WIDTH)
 print("MAX_PULSE_WIDTH", MAX_PULSE_WIDTH)
 PIN_FACTORY = PiGPIOFactory()
-# 0.07 dead band
 
+# with setup
+SETUP = True
 
 """
 Notes:
@@ -87,24 +88,24 @@ class Controller(Node):
         # set covariance for angular z
         self.COVARIANCE_MATRIX[35] = 0.1
 
-        # self.servo_left = AngularServo(
-        #     SERVO_GPIO_PORT_LEFT,
-        #     min_pulse_width=MIN_PULSE_WIDTH,
-        #     max_pulse_width=MAX_PULSE_WIDTH,
-        #     pin_factory=PIN_FACTORY,
-        #     initial_angle=0,
-        #     min_angle=-1,
-        #     max_angle=1,
-        # )
-        # self.servo_right = AngularServo(
-        #     SERVO_GPIO_PORT_RIGHT,
-        #     min_pulse_width=MIN_PULSE_WIDTH,
-        #     max_pulse_width=MAX_PULSE_WIDTH,
-        #     pin_factory=PIN_FACTORY,
-        #     initial_angle=0,
-        #     min_angle=-1,
-        #     max_angle=1,
-        # )
+        self.servo_left = AngularServo(
+            SERVO_GPIO_PORT_LEFT,
+            min_pulse_width=MIN_PULSE_WIDTH,
+            max_pulse_width=MAX_PULSE_WIDTH,
+            pin_factory=PIN_FACTORY,
+            initial_angle=0,
+            min_angle=-1,
+            max_angle=1,
+        )
+        self.servo_right = AngularServo(
+            SERVO_GPIO_PORT_RIGHT,
+            min_pulse_width=MIN_PULSE_WIDTH,
+            max_pulse_width=MAX_PULSE_WIDTH,
+            pin_factory=PIN_FACTORY,
+            initial_angle=0,
+            min_angle=-1,
+            max_angle=1,
+        )
 
         self.create_subscription(Twist, "cmd_vel", self.cmd_vel_callback, 1)
         self.odometry_publisher = self.create_publisher(Odometry, "motor/odom", 1)
@@ -126,7 +127,12 @@ class Controller(Node):
         self.execute_power_levels()
 
     def set_max_min_esc(self):
-        pass
+        self.servo_left.angle = 1
+        self.servo_right.angle = 1
+
+        input("press enter to set min")
+        self.servo_left.angle = 0
+        self.servo_right.angle = 0
 
     def get_pos_neg(self, power):
         if power > 0:
@@ -242,9 +248,10 @@ class Controller(Node):
 def main():
     rclpy.init()
     controller = Controller()
-    i = input("Press s to set max and min esc values")
-    if i == "s":
-        controller.set_max_min_esc()
+    if SETUP:
+        i = input("Press s to set max and min esc values")
+        if i == "s":
+            controller.set_max_min_esc()
     rclpy.spin(controller)
     rclpy.shutdown()
 
