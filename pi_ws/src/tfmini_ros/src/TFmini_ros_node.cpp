@@ -20,7 +20,7 @@ const int SERVO_PIN = 17;
 const int MIN_WIDTH = 1280;
 const int MAX_WIDTH = 1720;
 const int MID_WIDTH = 1500;
-const int SPEED = 1590;
+const int SPEED = 1630;
 
 int run = 1;
 
@@ -33,7 +33,7 @@ std::vector<float> v;
 rclcpp::Node::SharedPtr node;
 rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr pub_range;
 
-bool calibration = true;
+bool calibration = false;
 int turns = 0;
 int readings = 0;
 int pref_size = 0;
@@ -50,62 +50,78 @@ void alert(int gpio, int level, uint32_t tick)
     }
     else if (in_mid && last_time > 900 && time_dif < 200)
     {
-      if (!calibration)
+      if (calibration)
       {
-        std::cout << v.size() << std::endl;
+        std::cout << "size = " << v.size() << std::endl;
         int dif = v.size() - pref_size;
         std::cout << "dif = " << dif << std::endl;
 
-        for (int i = v.size() - 1; i >= 0; i--)
+        if (dif > 0)
         {
-          if (v[i] % abs(dif) == 0)
-          {
-            if (dif > 0)
-              v.erase(v.begin() + i);
-            else
-              vec.insert(vec.begin(), 0.0f)
-          }
+          // remove last elements
+          v.erase(v.end() - dif, v.end());
+        }
+        else if (dif < 0)
+        {
+          // add 0 to the end
+          std::vector<float> temp(-dif, 0);
+          v.insert(v.end(), temp.begin(), temp.end());
         }
         TFmini_range.ranges = v;
         TFmini_range.angle_increment = 2 * PI / v.size();
         TFmini_range.header.stamp = node->now();
         pub_range->publish(TFmini_range);
-        std::cout << v.size() << std::endl;
-        for (float i : v)
-        {
-          std::cout << i << " ";
-          if (i == 0)
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
+        std::cout << "final size = " << v.size() << std::endl;
+        // for (float i : v)
+        // {
+        //   std::cout << i << " ";
+        //   if (i == 0)
+        //     std::cout << std::endl;
+        // }
+        // std::cout << std::endl;
         v.clear();
         in_mid = 0;
         printf("turn %d %d \n", last_time, time_dif);
+        std::cout << std::endl;
       }
-    }
-    else
-    {
-      turns++;
-      if (turns > 2)
+      else
       {
-        readings += v.size();
-        v.clear();
-        in_mid = 0;
-      }
-      else if (turns > 12)
-      {
-        calibration = false;
-        turns -= 2;
-        v.clear();
-        in_mid = 0;
-        pref_size = (int)(readings / turns);
-        std::cout << "calibration done" << std::endl;
-        std::cout << "readings = " << readings << std::endl;
-        std::cout << "turns = " << turns << std::endl;
-        std::cout << "readings/turns = " << readings / turns << std::endl;
-      }
-    }
+        int starting_rounds = 10;
+        int messure_rounds = 10;
 
+        turns++;
+        std::cout << "turns = " << turns << std::endl;
+        std::cout << "size = " << v.size() << std::endl;
+        int bad_reading = 0;
+        for (int i = 0; i < v.size(); i++)
+        {
+          if (v[i] == 0.0)
+            bad_reading++;
+        }
+        std::cout << "bad readings = " << bad_reading << std::endl;
+        std::cout << "readings = " << readings << std::endl;
+        if (turns == starting_rounds + messure_rounds)
+        {
+          calibration = true;
+          turns -= starting_rounds;
+          readings += v.size();
+          pref_size = (int)(readings / turns);
+          std::cout << "calibration done" << std::endl;
+          std::cout << "readings = " << readings << std::endl;
+          std::cout << "turns = " << turns << std::endl;
+          std::cout << "readings/turns = " << pref_size << std::endl;
+        }
+        else if (turns > starting_rounds)
+        {
+          readings += v.size();
+
+          std::cout << "start counting" << std::endl;
+        }
+        v.clear();
+        in_mid = 0;
+        std::cout << std::endl;
+      }
+    }
     last_time = time_dif;
   }
   else
