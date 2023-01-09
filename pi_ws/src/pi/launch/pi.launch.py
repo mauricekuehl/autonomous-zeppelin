@@ -12,11 +12,11 @@ def generate_launch_description():
 
     bno = Node(package="bno055", executable="bno055", parameters=[config])
 
-    hardware = Node(package="hardware", executable="drive_hardware")
+    hardware = Node(package="hardware", output="screen", executable="drive_hardware")
 
     lidar = Node(package="tfmini_ros", executable="tfmini_ros_node")
 
-    ld.add_action(bno)
     ld.add_action(hardware)
+    ld.add_action(bno)
     ld.add_action(lidar)
     return ld
