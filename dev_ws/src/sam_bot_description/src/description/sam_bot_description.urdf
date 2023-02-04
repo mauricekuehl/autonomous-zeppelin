@@ -24,20 +24,24 @@
 
   <!-- Define robot constants -->
   <xacro:property name="haul_width" value="0.7" />
-  <xacro:property name="haul_length" value="3.2" />
+  <xacro:property
+    name="haul_length" value="3.2" />
   <xacro:property name="haul_over_ground" value="0.2" />
 
 
-  <xacro:property name="wheel_radius" value="0.10" />
+  <xacro:property
+    name="wheel_radius" value="0.10" />
   <xacro:property name="wheel_width" value="0.01" />
-  <xacro:property name="carbon_rod_length" value="1" />
+  <xacro:property
+    name="carbon_rod_length" value="1" />
 
   <!-- TODO use mesh http://wiki.ros.org/urdf/XML/link -->
   <link name="base_link" />
 
   <link name="base_footprint" />
 
-  <joint name="base_joint" type="fixed">
+  <joint
+    name="base_joint" type="fixed">
     <parent link="base_link" />
     <child link="base_footprint" />
     <origin xyz="0.0 0.0 ${-haul_over_ground}" rpy="0 0 0" />
@@ -75,7 +79,8 @@
     </collision>
   </link>
 
-  <joint name="haul_joint" type="fixed">
+  <joint
+    name="haul_joint" type="fixed">
     <parent link="base_link" />
     <child link="haul" />
     <origin xyz="0.0 0.0 ${haul_width/2}" rpy="0 0 0" />
@@ -97,7 +102,8 @@
     </collision>
   </link>
 
-  <joint name="carbon_bar" type="fixed">
+  <joint
+    name="carbon_bar" type="fixed">
     <parent link="base_link" />
     <child link="carbon_rod" />
     <origin xyz="0.0 0.0 0" rpy="0 0 0" />
@@ -120,7 +126,8 @@
     </collision>
   </link>
 
-  <joint name="wheel_left_joint" type="fixed">
+  <joint
+    name="wheel_left_joint" type="fixed">
     <parent link="base_link" />
     <child link="wheel_left" />
     <origin xyz="0 ${carbon_rod_length/2} 0" rpy="0 0 0" />
@@ -144,7 +151,8 @@
     </collision>
   </link>
 
-  <joint name="wheel_right_joint" type="fixed">
+  <joint
+    name="wheel_right_joint" type="fixed">
     <parent link="base_link" />
     <child link="wheel_right" />
     <origin xyz="0 ${-carbon_rod_length/2} 0" rpy="0 0 0" />
@@ -173,5 +181,13 @@
     <parent link="base_link" />
     <child link="lidar_link" />
     <origin xyz="0 0 ${-haul_over_ground+0.05/2}" rpy="0 0 0" />
+  </joint>
+
+  <link name="cam_link" />
+
+  <joint name="cam_link" type="fixed">
+    <parent link="base_link" />
+    <child link="cam_link" />
+    <origin xyz="0 0 0" rpy="${pi/-2} 0 ${pi/-2}" />
   </joint>
 </robot>

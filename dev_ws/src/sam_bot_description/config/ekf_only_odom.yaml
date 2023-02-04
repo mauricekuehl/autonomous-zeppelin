@@ -4,7 +4,7 @@ ekf_filter_node:
     # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
     # computation until it receives at least one message from one of the inputs. It will then run continuously at the
     # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
-    frequency: 30.0
+    frequency: 40.0
 
     # ekf_localization_node and ukf_localization_node both use a 3D omnidirectional motion model. If this parameter is
     # set to true, no 3D information will be used in your state estimate. Use this if you are operating in a planar
@@ -33,21 +33,21 @@ ekf_filter_node:
     world_frame: odom # Defaults to the value of odom_frame if unspecified
     # TODO this might be change to map_frame as stated above
 
-    odom0: motor/odom
-    # prettier-ignore
-    odom0_config: [false,  false,  false, # pos
-                   false, false, false, # orientation
-                   true, true, false, # linear
-                   false, false, true, # angular
-                   false, false, false] # linear acc
-
-    # pose0: pose
+    # odom0: motor/odom
     # # prettier-ignore
-    # pose0_config: [true,  true,  true, # pos
-    #                true, true, true, # orientation
-    #                false, false, false, # linear
-    #                false, false, false, # angular
+    # odom0_config: [false,  false,  false, # pos
+    #                false, false, false, # orientation
+    #                true, true, false, # linear
+    #                false, false, true, # angular
     #                false, false, false] # linear acc
+
+    odom0: run_slam/camera_pose
+    # prettier-ignore
+    odom0_config: [true,  true,  true, # pos
+                   true, true, true, # orientation
+                   false, false, false, # linear
+                   false, false, false, # angular
+                   false, false, false] # linear acc
 
     # imu0: imu/imu
     # # prettier-ignore

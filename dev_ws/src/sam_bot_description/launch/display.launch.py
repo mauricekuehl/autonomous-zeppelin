@@ -26,16 +26,6 @@ def generate_launch_description():
         pkg_share, "src/description/sam_bot_description.urdf"
     )
 
-    # nav = Node(
-    #     package="nav2_bringup",
-    #     executable="naviagtion_launch",
-    #     name="nav2_bringup",
-    #     output="screen",
-    #     parameters=[
-    #         os.path.join(pkg_share, "config/nav2_params.yaml"),
-    #     ],
-    # )
-
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -74,6 +64,24 @@ def generate_launch_description():
         package="dummy_map_server_mauz",
         executable="dummy_map_server",
         name="dummy_map_server",
+    )
+
+    scan_odom = Node(
+        package="rf2o_laser_odometry",
+        executable="rf2o_laser_odometry_node",
+        name="rf2o_laser_odometry",
+        output="screen",
+        parameters=[
+            {
+                "laser_scan_topic": "/scan",
+                "odom_topic": "/odom_rf2o",
+                "publish_tf": True,
+                "base_frame_id": "base_link",
+                "odom_frame_id": "odom",
+                "init_pose_from_topic": "",
+                "freq": 20.0,
+            }
+        ],
     )
 
     robot_localization_node_odom_only = Node(
@@ -417,12 +425,13 @@ def generate_launch_description():
     ld.add_action(rviz_config)
     ld.add_action(joint_state_publisher_node)
     ld.add_action(robot_state_publisher_node)
-    ld.add_action(robot_localization_node)
+    # ld.add_action(robot_localization_node)
     # ld.add_action(robot_localization_node_odom_only)
     ld.add_action(rviz_node)
     ld.add_action(joy_node)
     ld.add_action(teleop_node)
-    ld.add_action(slam)
+    # ld.add_action(scan_odom)
+    # ld.add_action(slam)
     # ld.add_action(map_dummy)
 
     return ld
