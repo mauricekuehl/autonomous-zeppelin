@@ -430,8 +430,8 @@ def generate_launch_description():
     ld.add_action(rviz_node)
     ld.add_action(joy_node)
     ld.add_action(teleop_node)
-    # ld.add_action(scan_odom)
-    # ld.add_action(slam)
+    ld.add_action(scan_odom)
+    ld.add_action(slam)
     # ld.add_action(map_dummy)
 
     return ld
